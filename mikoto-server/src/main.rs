@@ -1,28 +1,29 @@
-use specta::{collect_functions, export, function, ts::export, Type};
+use hyperschema::{language::typescript::generate_typescript, service::Service};
+use serde::{Deserialize, Serialize};
+use specta::{ts::ExportConfig, Type};
 
-#[derive(Type)]
-pub struct Foo {
-    pub bar: String,
-    pub baz: Baz,
+#[derive(Serialize, Deserialize, Type)]
+pub struct Person {
+    pub name: String,
+    pub age: i32,
+    pub pet: Option<Animal>,
 }
 
-#[derive(Type)]
-pub struct Baz {
-    pub quux: String,
-}
-
-#[specta::specta]
-fn the_fn(arg1: i32, arg2: bool) -> Baz {
-    todo!()
+#[derive(Serialize, Deserialize, Type)]
+pub struct Animal {
+    pub name: String,
+    pub age: i32,
 }
 
 fn main() {
-    let types: Vec<_> = export::get_types().collect();
-    // dbg!(types);
-    // export::ts("./src/lib.ts").unwrap();
+    let service = Service::<()>::new().query("getPerson", |ctx, name: String| async move {
+        Person {
+            name,
+            age: 22,
+            pet: None,
+        }
+    });
 
-    let res = function::collect_functions![the_fn];
-    dbg!(res);
-
-    println!("Hello, world!!!");
+    let ts = generate_typescript(&ExportConfig::default(), &service);
+    println!("{}", ts);
 }
