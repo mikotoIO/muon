@@ -1,0 +1,107 @@
+syntax = "proto3";
+
+package mikoto;
+
+message Empty {}
+
+message User {
+    string id = 1;
+    string name = 2;
+    optional string avatar = 3;
+    optional string category = 4;
+}
+
+message UserStatus {
+    optional string presence = 1;
+    optional string content = 2;
+}
+
+message UserProfile {
+    string id = 1;
+    string name = 2;
+    optional string avatar = 3;
+    optional string category = 4;
+    optional string description = 5;
+    optional UserStatus status = 6;
+}
+
+message Role {
+    string id = 1;
+    string name = 2;
+    optional string color = 3;
+    string spaceId = 4;
+    string permissions = 5;
+    int32 position = 6;
+}
+
+message Channel {
+    string id = 1;
+    string spaceId = 2;
+    optional string parentId = 3;
+    string name = 4;
+    string order = 5;
+    string lastUpdated = 6;
+    string type = 7;
+}
+
+message Space {
+    string id = 1;
+    string name = 2;
+    string type = 3;
+    optional string icon = 4;
+    repeated Channel channels = 5;
+    repeated Role roles = 6;
+    optional string ownerId = 7;
+}
+
+message Member {
+    string id = 1;
+    string spaceId = 2;
+    User user = 3;
+    repeated string roleId = 4;
+}
+
+message Message {
+    string id = 1;
+    string content = 2;
+    string timestamp = 3;
+    optional string editedTimestamp = 4;
+    string authorId = 5;
+    optional User author = 6;
+    string channelId = 7;
+}
+
+message Invite {
+    string code = 1;
+}
+
+message Unread {
+    string channelId = 1;
+    string timestamp = 2;
+}
+
+message Relation {
+    string id = 1;
+    User relation = 2;
+    Space space = 3;
+}
+
+message Document {
+    string id = 1;
+    string channelId = 2;
+    string content = 3;
+}
+
+message TypingEvent {
+    string channelId = 1;
+    string userId = 2;
+    string memberId = 3;
+}
+
+message ChannelList { repeated Channel channels = 1;  }
+message GetChannel { string channelId = 1;  }
+message ListChannel { string spaceId = 1;  }
+
+service Channels {
+}
+
