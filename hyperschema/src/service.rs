@@ -87,8 +87,8 @@ where
                 ret
             })),
             ty: RouteType::Query(
-                Arg::inline(type_map, Generics::Definition),
-                Res::inline(type_map, Generics::Definition),
+                Arg::reference(type_map, &[]).inner,
+                Res::reference(type_map, &[]).inner,
             ),
         }
     }
