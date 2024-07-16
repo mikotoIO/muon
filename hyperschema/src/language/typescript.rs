@@ -38,18 +38,19 @@ where
         }
     }
 
-    let mut type_map = TypeMap::default();
-    for (sid, dt) in types.iter() {
-        type_map.insert(*sid, dt.clone())
-    }
+    // let mut type_map = TypeMap::default();
+    // for (sid, dt) in types.iter() {
+    //     type_map.insert(*sid, dt.clone())
+    // }
+    let type_map = &service.type_map;
     for (_, typ) in types.iter() {
-        out += &specta::ts::export_named_datatype(conf, typ, &type_map).unwrap();
+        out += &specta::ts::export_named_datatype(conf, typ, type_map).unwrap();
         out += "\n\n";
     }
 
     // dbg!(&service.type_map.len());
     service.queries.iter().for_each(|(_, route)| {
-        dbg!(route_type_to_ts(conf, &service.type_map, &route.ty));
+        dbg!(route_type_to_ts(conf, type_map, &route.ty));
 
         out += "\n\n";
     });
