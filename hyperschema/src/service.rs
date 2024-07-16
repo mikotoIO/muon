@@ -1,7 +1,7 @@
 use std::{collections::HashMap, future::Future};
 
 use serde::{de::DeserializeOwned, Serialize};
-use specta::Type;
+use specta::{DataType, Generics, NamedDataType, Type, TypeMap};
 
 use crate::{
     error::Error,
@@ -14,6 +14,7 @@ where
 {
     pub queries: HashMap<String, Route<Ctx>>,
     pub procedures: HashMap<String, Route<Ctx>>,
+    pub type_map: TypeMap,
 }
 
 impl<Ctx> Service<Ctx>
@@ -24,6 +25,7 @@ where
         Service {
             queries: HashMap::new(),
             procedures: HashMap::new(),
+            type_map: TypeMap::default(),
         }
     }
 
@@ -34,7 +36,8 @@ where
         Arg: DeserializeOwned + Type,
         Res: Serialize + Type + Send + Sync + 'static,
     {
-        self.queries.insert(path.to_string(), Route::from_fn(f));
+        self.queries
+            .insert(path.to_string(), Route::from_fn(f, &mut self.type_map));
         self
     }
 
@@ -45,20 +48,27 @@ where
         Arg: DeserializeOwned + Type,
         Res: Serialize + Type + Send + Sync + 'static,
     {
-        self.procedures.insert(path.to_string(), Route::from_fn(f));
+        self.procedures
+            .insert(path.to_string(), Route::from_fn(f, &mut self.type_map));
         self
     }
 }
 
 pub struct Route<Ctx> {
     pub layer: Box<dyn Layer<Ctx>>,
+    pub ty: RouteType,
+}
+
+#[derive(Debug)]
+pub enum RouteType {
+    Query(DataType, DataType),
 }
 
 impl<Ctx> Route<Ctx>
 where
     Ctx: Send + Sync + 'static,
 {
-    pub fn from_fn<Fut, Arg, Res, F>(f: F) -> Self
+    pub fn from_fn<Fut, Arg, Res, F>(f: F, type_map: &mut TypeMap) -> Self
     where
         F: Fn(Ctx, Arg) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Res> + Send + 'static,
@@ -76,6 +86,10 @@ where
                 })));
                 ret
             })),
+            ty: RouteType::Query(
+                Arg::inline(type_map, Generics::Definition),
+                Res::inline(type_map, Generics::Definition),
+            ),
         }
     }
 }

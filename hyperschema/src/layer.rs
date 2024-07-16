@@ -6,8 +6,6 @@ pub trait Layer<Ctx: 'static>: Send + Sync + 'static {
     fn call(&self, ctx: Ctx, input: Vec<u8>) -> Result<LayerResponse<Vec<u8>>, Error>;
 }
 
-pub enum LayerType {}
-
 pub enum LayerResponse<T> {
     Future(Pin<Box<dyn Future<Output = T> + Send>>),
 }

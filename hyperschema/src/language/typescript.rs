@@ -1,8 +1,12 @@
 use std::collections::BTreeMap;
 
-use specta::{export::get_types, ts::ExportConfig, TypeMap};
+use specta::{
+    export::get_types,
+    ts::{self, ExportConfig},
+    DataType, TypeMap,
+};
 
-use crate::service::Service;
+use crate::service::{RouteType, Service};
 
 pub fn generate_typescript<Ctx>(conf: &ExportConfig, service: &Service<Ctx>) -> String
 where
@@ -19,7 +23,7 @@ where
     let mut map = BTreeMap::new();
     for (sid, dt) in &types {
         if let Some(ext) = &dt.ext() {
-            if let Some((existing_sid, existing_impl_location)) =
+            if let Some((existing_sid, _)) =
                 map.insert(dt.name().clone(), (sid, ext.impl_location()))
             {
                 if existing_sid != sid {
@@ -42,5 +46,30 @@ where
         out += &specta::ts::export_named_datatype(conf, typ, &type_map).unwrap();
         out += "\n\n";
     }
+
+    // dbg!(&service.type_map.len());
+    service.queries.iter().for_each(|(_, route)| {
+        dbg!(route_type_to_ts(conf, &service.type_map, &route.ty));
+
+        out += "\n\n";
+    });
     out
+}
+
+// fn datatype_to_name(datatype: &DataType) -> String {
+//     match datatype {
+//         DataType::Primitive(p) => p.to_string(),
+//     }
+// }
+
+fn route_type_to_ts(conf: &ExportConfig, type_map: &TypeMap, route_type: &RouteType) -> String {
+    match route_type {
+        RouteType::Query(arg, res) => {
+            format!(
+                "export type Query<Arg = {}, Res = {}> = (arg: Arg) => Promise<Res>;",
+                ts::datatype(conf, arg, type_map).unwrap(),
+                ts::datatype(conf, res, type_map).unwrap()
+            )
+        }
+    }
 }
