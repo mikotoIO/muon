@@ -12,19 +12,24 @@ pub struct Service<Ctx = ()>
 where
     Ctx: Send + Sync + 'static,
 {
+    pub name: &'static str,
+    pub subservices: HashMap<String, Service<Ctx>>,
+    pub type_map: TypeMap,
+
     pub queries: HashMap<String, Route<Ctx>>,
     pub procedures: HashMap<String, Route<Ctx>>,
-    pub type_map: TypeMap,
 }
 
 impl<Ctx> Service<Ctx>
 where
     Ctx: Send + Sync + 'static,
 {
-    pub fn new() -> Self {
+    pub fn new(name: &'static str) -> Self {
         Service {
+            name,
             queries: HashMap::new(),
             procedures: HashMap::new(),
+            subservices: HashMap::new(),
             type_map: TypeMap::default(),
         }
     }
@@ -50,6 +55,14 @@ where
     {
         self.procedures
             .insert(path.to_string(), Route::from_fn(f, &mut self.type_map));
+        self
+    }
+
+    pub fn mount(mut self, path: &'static str, sub: Service<Ctx>) -> Self {
+        for (sid, ty) in sub.type_map.iter() {
+            self.type_map.insert(sid.clone(), ty.clone());
+        }
+        self.subservices.insert(path.to_string(), sub);
         self
     }
 }
