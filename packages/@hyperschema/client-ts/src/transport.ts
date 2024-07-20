@@ -4,6 +4,7 @@ import { encode64, encode, decode } from "./msgpack";
 export interface Transport {
   query(path: string, arg: any): Promise<any>;
   procedure(path: string, arg: any): Promise<any>;
+  event(cb: (msg: any) => void): () => void;
 }
 
 // we pass around msgpack, encoded as base64.
@@ -28,5 +29,10 @@ export class AxiosTransport {
       responseType: "arraybuffer",
     });
     return decode(new Uint8Array(response.data));
+  }
+
+  // for using events, use the websocket transport
+  event(_cb: (msg: any) => void): () => void {
+    throw new Error("Events are not implemented for AxiosTransport");
   }
 }
