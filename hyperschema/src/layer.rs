@@ -7,7 +7,7 @@ pub trait Layer<Ctx: 'static>: Send + Sync + 'static {
 }
 
 pub enum LayerResponse<T> {
-    Future(Pin<Box<dyn Future<Output = T> + Send>>),
+    Future(Pin<Box<dyn Future<Output = Result<T, Error>> + Send>>),
 }
 
 pub struct FnLayer<Ctx, F>

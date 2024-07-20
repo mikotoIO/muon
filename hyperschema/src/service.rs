@@ -109,12 +109,11 @@ where
             layer: Box::new(FnLayer::new(move |ctx: Ctx, input: Vec<u8>| {
                 let input: Arg = rmp_serde::from_slice(input.as_slice())
                     .map_err(|_| Error::DeserializationFailed)?;
-                let fut = f(ctx, input);
 
-                let ret = Ok(LayerResponse::Future(Box::pin(async move {
-                    rmp_serde::to_vec_named(&fut.await).unwrap()
-                })));
-                ret
+                let fut = f(ctx, input);
+                let p = Box::pin(async move { Ok(rmp_serde::to_vec_named(&fut.await)?) });
+
+                Ok(LayerResponse::Future(p))
             })),
             ty,
         }
