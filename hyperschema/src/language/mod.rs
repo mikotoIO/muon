@@ -24,6 +24,14 @@ pub struct RouteNode {
     pub ty: RouteType,
 }
 
+fn combine_path(path: &str, name: &str) -> String {
+    if path.is_empty() {
+        name.to_string()
+    } else {
+        format!("{}.{}", path, name)
+    }
+}
+
 impl ApplicationNode {
     pub fn from_service<T: Send + Sync + 'static>(service: &Service<T>) -> Self {
         let mut app = ApplicationNode { services: vec![] };
@@ -46,14 +54,14 @@ impl ApplicationNode {
         for (name, route) in &service.queries {
             routes.push(RouteNode {
                 name: name.to_string(),
-                path: format!("{}.{}", path, name),
+                path: combine_path(&path, name),
                 ty: route.ty.clone(),
             });
         }
         for (name, route) in &service.procedures {
             routes.push(RouteNode {
                 name: name.to_string(),
-                path: format!("{}.{}", path, name),
+                path: combine_path(&path, name),
                 ty: route.ty.clone(),
             });
         }
@@ -66,7 +74,7 @@ impl ApplicationNode {
         });
 
         for (name, subservice) in &service.subservices {
-            self.flatten_services_recursively(subservice, format!("{}.{}", path, name));
+            self.flatten_services_recursively(subservice, combine_path(&path, name));
         }
     }
 }
