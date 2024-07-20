@@ -1,6 +1,6 @@
-use hyperschema::{language::typescript::generate_typescript, service::Service};
+use hyperschema::{language::typescript::TypeScriptGenerator, service::Service};
 use serde::{Deserialize, Serialize};
-use specta::{ts::ExportConfig, NamedType, Type};
+use specta::{ts::ExportConfig, Type};
 
 #[derive(Serialize, Deserialize, Type)]
 pub struct Person {
@@ -16,15 +16,15 @@ pub struct Animal {
 }
 
 fn main() {
-    let service = Service::<()>::new("PersonService")
-        .query("getPerson", |ctx, name: String| async move {
+    let person_service = Service::<()>::new("PersonService")
+        .query("getPerson", |_, name: String| async move {
             Person {
                 name,
                 age: 22,
                 pet: None,
             }
         })
-        .procedure("setPerson", |ctx, name: String| async move {
+        .procedure("setPerson", |_, name: String| async move {
             Person {
                 name,
                 age: 22,
@@ -32,6 +32,10 @@ fn main() {
             }
         });
 
-    let ts = generate_typescript(&ExportConfig::default(), &service);
+    let service = Service::<()>::new("Mikoto")
+        .query("ping", |_, pong: String| async move { pong })
+        .mount("persons", person_service);
+
+    let ts = TypeScriptGenerator::new(ExportConfig::default(), &service).generate();
     println!("{}", ts);
 }

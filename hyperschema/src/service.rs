@@ -1,7 +1,7 @@
 use std::{collections::HashMap, future::Future};
 
 use serde::{de::DeserializeOwned, Serialize};
-use specta::{DataType, Generics, NamedDataType, Type, TypeMap};
+use specta::{DataType, Type, TypeMap};
 
 use crate::{
     error::Error,
@@ -41,8 +41,16 @@ where
         Arg: DeserializeOwned + Type,
         Res: Serialize + Type + Send + Sync + 'static,
     {
-        self.queries
-            .insert(path.to_string(), Route::from_fn(f, &mut self.type_map));
+        self.queries.insert(
+            path.to_string(),
+            Route::from_fn(
+                f,
+                RouteType::Query(
+                    Arg::reference(&mut self.type_map, &[]).inner,
+                    Res::reference(&mut self.type_map, &[]).inner,
+                ),
+            ),
+        );
         self
     }
 
@@ -53,8 +61,16 @@ where
         Arg: DeserializeOwned + Type,
         Res: Serialize + Type + Send + Sync + 'static,
     {
-        self.procedures
-            .insert(path.to_string(), Route::from_fn(f, &mut self.type_map));
+        self.procedures.insert(
+            path.to_string(),
+            Route::from_fn(
+                f,
+                RouteType::Procedure(
+                    Arg::reference(&mut self.type_map, &[]).inner,
+                    Res::reference(&mut self.type_map, &[]).inner,
+                ),
+            ),
+        );
         self
     }
 
@@ -72,16 +88,17 @@ pub struct Route<Ctx> {
     pub ty: RouteType,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum RouteType {
     Query(DataType, DataType),
+    Procedure(DataType, DataType),
 }
 
 impl<Ctx> Route<Ctx>
 where
     Ctx: Send + Sync + 'static,
 {
-    pub fn from_fn<Fut, Arg, Res, F>(f: F, type_map: &mut TypeMap) -> Self
+    pub fn from_fn<Fut, Arg, Res, F>(f: F, ty: RouteType) -> Self
     where
         F: Fn(Ctx, Arg) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Res> + Send + 'static,
@@ -99,10 +116,7 @@ where
                 })));
                 ret
             })),
-            ty: RouteType::Query(
-                Arg::reference(type_map, &[]).inner,
-                Res::reference(type_map, &[]).inner,
-            ),
+            ty,
         }
     }
 }
