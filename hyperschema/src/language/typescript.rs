@@ -34,7 +34,14 @@ where
 
         for service in app.services.iter() {
             out += &format!("export class {} {{\n", service.name);
-            out += &"  constructor(protected transport: Transport) {}\n";
+            for (name, path) in service.subservices.iter() {
+                out += &format!("  readonly {}: {};\n", name, path);
+            }
+            out += &"  constructor(protected transport: Transport) {\n";
+            for (name, path) in service.subservices.iter() {
+                out += &format!("    this.{} = new {}(this.transport);\n", name, path);
+            }
+            out += &"  }\n";
             service.routes.iter().for_each(|route| {
                 out += &self.generate_route(&route);
                 out += "\n";

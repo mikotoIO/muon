@@ -17,14 +17,14 @@ pub struct Animal {
 
 fn main() {
     let person_service = Service::<()>::new("PersonService")
-        .query("getPerson", |_, name: String| async move {
+        .query("get", |_, name: String| async move {
             Person {
                 name,
                 age: 22,
                 pet: None,
             }
         })
-        .procedure("setPerson", |_, name: String| async move {
+        .procedure("set", |_, name: String| async move {
             Person {
                 name,
                 age: 22,
