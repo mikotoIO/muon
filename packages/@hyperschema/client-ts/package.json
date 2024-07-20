@@ -1,12 +1,18 @@
 {
-  "name": "client-ts",
+  "name": "@hyperschema/client-ts",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
+    "build": "tsc --build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@sindresorhus/tsconfig": "^6.0.0",
+    "typescript": "^5.2.2"
+  }
 }

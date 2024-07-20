@@ -1,0 +1,20 @@
+{
+  "extends": "@sindresorhus/tsconfig",
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "lib": ["ES2022"],
+    "target": "ES2022",
+    "declarationMap": true,
+    "sourceMap": true,
+    "importsNotUsedAsValues": "remove",
+    "isolatedModules": true,
+    "esModuleInterop": true
+  },
+  "include": ["./src/**/*.ts"],
+  "ts-node": {
+    "esm": true,
+    "transpileOnly": true,
+    "files": true,
+    "experimentalResolver": true
+  }
+}

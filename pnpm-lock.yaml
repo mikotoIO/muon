@@ -8,6 +8,15 @@ importers:
 
   .: {}
 
+  packages/@hyperschema/client-ts:
+    devDependencies:
+      '@sindresorhus/tsconfig':
+        specifier: ^6.0.0
+        version: 6.0.0
+      typescript:
+        specifier: ^5.2.2
+        version: 5.5.3
+
   packages/example-frontend:
     dependencies:
       react:
@@ -726,6 +735,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@sindresorhus/tsconfig@6.0.0:
+    resolution: {integrity: sha512-+fUdfuDd/7O2OZ9/UvJy76IEWn2Tpvm2l+rwUoS2Yz4jCUTSNOQQv2PLWrwekt8cPLwHmpHaBpay34bkBmVl2Q==}
+    engines: {node: '>=18'}
+    dev: true
 
   /@types/babel__core@7.20.5:
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
