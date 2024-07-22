@@ -37,7 +37,7 @@ where
     pub fn query<Fut, Arg, Res, F>(mut self, path: &'static str, f: F) -> Self
     where
         F: Fn(Ctx, Arg) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
+        Fut: Future<Output = Result<Res, Error>> + Send + 'static,
         Arg: DeserializeOwned + Type,
         Res: Serialize + Type + Send + Sync + 'static,
     {
@@ -57,7 +57,7 @@ where
     pub fn procedure<Fut, Arg, Res, F>(mut self, path: &'static str, f: F) -> Self
     where
         F: Fn(Ctx, Arg) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
+        Fut: Future<Output = Result<Res, Error>> + Send + 'static,
         Arg: DeserializeOwned + Type,
         Res: Serialize + Type + Send + Sync + 'static,
     {
@@ -101,17 +101,16 @@ where
     pub fn from_fn<Fut, Arg, Res, F>(f: F, ty: RouteType) -> Self
     where
         F: Fn(Ctx, Arg) -> Fut + Send + Sync + 'static,
-        Fut: Future<Output = Res> + Send + 'static,
+        Fut: Future<Output = Result<Res, Error>> + Send + 'static,
         Arg: DeserializeOwned + Type,
         Res: Serialize + Type + Send + Sync + 'static,
     {
         Route {
             layer: Box::new(FnLayer::new(move |ctx: Ctx, input: Vec<u8>| {
-                let input: Arg = rmp_serde::from_slice(input.as_slice())
-                    .map_err(|_| Error::DeserializationFailed)?;
+                let input: Arg = rmp_serde::from_slice(input.as_slice())?;
 
                 let fut = f(ctx, input);
-                let p = Box::pin(async move { Ok(rmp_serde::to_vec_named(&fut.await)?) });
+                let p = Box::pin(async move { Ok(rmp_serde::to_vec_named(&fut.await?)?) });
 
                 Ok(LayerResponse::Future(p))
             })),
