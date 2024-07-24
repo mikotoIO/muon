@@ -74,6 +74,14 @@ where
                     ts::datatype(&self.conf, &res, &self.service.type_map).unwrap(),
                     route.path
                 )
+            },
+            RouteType::Event(res) => {
+                format!(
+                    "  {}(cb: (arg: {}) => void): () => void {{ return this.transport.event('{}', cb); }}",
+                    route.name,
+                    ts::datatype(&self.conf, &res, &self.service.type_map).unwrap(),
+                    route.path
+                )
             }
         }
     }
