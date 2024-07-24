@@ -1,4 +1,7 @@
-use specta::ts::{self, ExportConfig};
+use specta::{
+    ts::{self, ExportConfig, ExportError},
+    DataType,
+};
 
 use crate::service::{RouteType, Service};
 
@@ -18,6 +21,10 @@ where
 {
     pub fn new(conf: ExportConfig, service: &'s Service<Ctx>) -> Self {
         TypeScriptGenerator { conf, service }
+    }
+
+    fn datatype(&self, ty: &DataType) -> Result<String, ExportError> {
+        Ok(ts::datatype(&self.conf, &ty, &self.service.type_map)?)
     }
 
     pub fn generate(&self) -> String {
@@ -46,7 +53,7 @@ where
             }
             out += &"  }\n";
             service.routes.iter().for_each(|route| {
-                out += &self.generate_route(&route);
+                out += &self.generate_route(&route).unwrap();
                 out += "\n";
             });
             out += "}\n\n"
@@ -55,14 +62,14 @@ where
         out
     }
 
-    pub fn generate_route(&self, route: &RouteNode) -> String {
-        match &route.ty {
+    pub fn generate_route(&self, route: &RouteNode) -> Result<String, ExportError> {
+        let res = match &route.ty {
             RouteType::Query(arg, res) => {
                 format!(
                     "  {}(arg: {}): Promise<{}> {{ return this.transport.query('{}', arg); }}",
                     route.name,
-                    ts::datatype(&self.conf, &arg, &self.service.type_map).unwrap(),
-                    ts::datatype(&self.conf, &res, &self.service.type_map).unwrap(),
+                    self.datatype(&arg)?,
+                    self.datatype(&res)?,
                     route.path
                 )
             }
@@ -70,19 +77,21 @@ where
                 format!(
                     "  {}(arg: {}): Promise<{}> {{ return this.transport.procedure('{}'); }}",
                     route.name,
-                    ts::datatype(&self.conf, &arg, &self.service.type_map).unwrap(),
-                    ts::datatype(&self.conf, &res, &self.service.type_map).unwrap(),
+                    self.datatype(&arg)?,
+                    self.datatype(&res)?,
                     route.path
                 )
-            },
+            }
             RouteType::Event(res) => {
                 format!(
                     "  {}(cb: (arg: {}) => void): () => void {{ return this.transport.event('{}', cb); }}",
                     route.name,
-                    ts::datatype(&self.conf, &res, &self.service.type_map).unwrap(),
+                    self.datatype(&res)?,
                     route.path
                 )
             }
-        }
+        };
+
+        Ok(res)
     }
 }

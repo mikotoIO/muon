@@ -1,6 +1,6 @@
 use std::{collections::HashMap, future::Future};
 
-use futures::{FutureExt, Stream, StreamExt, TryStreamExt};
+use futures::{Stream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
 use specta::{DataType, Type, TypeMap};
 
