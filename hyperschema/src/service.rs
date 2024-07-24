@@ -1,5 +1,6 @@
 use std::{collections::HashMap, future::Future};
 
+use futures::{FutureExt, Stream, StreamExt, TryStreamExt};
 use serde::{de::DeserializeOwned, Serialize};
 use specta::{DataType, Type, TypeMap};
 
@@ -18,6 +19,7 @@ where
 
     pub queries: HashMap<String, Route<Ctx>>,
     pub procedures: HashMap<String, Route<Ctx>>,
+    pub events: HashMap<String, Route<Ctx>>,
 }
 
 impl<Ctx> Service<Ctx>
@@ -29,6 +31,7 @@ where
             name,
             queries: HashMap::new(),
             procedures: HashMap::new(),
+            events: HashMap::new(),
             subservices: HashMap::new(),
             type_map: TypeMap::default(),
         }
@@ -74,6 +77,22 @@ where
         self
     }
 
+    pub fn event<S, Res, F>(mut self, path: &'static str, f: F) -> Self
+    where
+        F: Fn(Ctx) -> S + Send + Sync + 'static,
+        S: Stream<Item = Res> + Send + 'static,
+        Res: Serialize + Type + Send + Sync + 'static,
+    {
+        self.events.insert(
+            path.to_string(),
+            Route::from_stream(
+                move |ctx: Ctx, _: ()| f(ctx),
+                RouteType::Event(Res::reference(&mut self.type_map, &[]).inner),
+            ),
+        );
+        self
+    }
+
     pub fn mount(mut self, path: &'static str, sub: Service<Ctx>) -> Self {
         for (sid, ty) in sub.type_map.iter() {
             self.type_map.insert(sid.clone(), ty.clone());
@@ -92,6 +111,7 @@ pub struct Route<Ctx> {
 pub enum RouteType {
     Query(DataType, DataType),
     Procedure(DataType, DataType),
+    Event(DataType),
 }
 
 impl<Ctx> Route<Ctx>
@@ -113,6 +133,25 @@ where
                 let p = Box::pin(async move { Ok(rmp_serde::to_vec_named(&fut.await?)?) });
 
                 Ok(LayerResponse::Future(p))
+            })),
+            ty,
+        }
+    }
+
+    pub fn from_stream<S, Arg, Res, F>(f: F, ty: RouteType) -> Self
+    where
+        F: Fn(Ctx, Arg) -> S + Send + Sync + 'static,
+        S: Stream<Item = Res> + Send + 'static,
+        Arg: DeserializeOwned + Type,
+        Res: Serialize + Type + Send + Sync + 'static,
+    {
+        Route {
+            layer: Box::new(FnLayer::new(move |ctx: Ctx, input: Vec<u8>| {
+                let input: Arg = rmp_serde::from_slice(input.as_slice())?;
+                let stream = f(ctx, input);
+                let s = stream.map(|res| rmp_serde::to_vec_named(&res).map_err(|err| err.into()));
+
+                Ok(LayerResponse::Stream(Box::pin(s)))
             })),
             ty,
         }

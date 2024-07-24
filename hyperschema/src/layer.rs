@@ -1,5 +1,7 @@
 use std::{future::Future, marker::PhantomData, pin::Pin};
 
+use futures::Stream;
+
 use crate::error::Error;
 
 pub trait Layer<Ctx: 'static>: Send + Sync + 'static {
@@ -8,6 +10,7 @@ pub trait Layer<Ctx: 'static>: Send + Sync + 'static {
 
 pub enum LayerResponse<T> {
     Future(Pin<Box<dyn Future<Output = Result<T, Error>> + Send>>),
+    Stream(Pin<Box<dyn Stream<Item = Result<T, Error>>>>),
 }
 
 pub struct FnLayer<Ctx, F>
