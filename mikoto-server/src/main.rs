@@ -45,6 +45,7 @@ fn humans() -> Service<()> {
                 pet: None,
             })
         })
+        .query("derp", |_, _: ()| async move { Ok(()) })
 }
 
 fn main() {

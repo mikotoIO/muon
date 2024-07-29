@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::service::{Route, Service};
 
@@ -6,8 +6,8 @@ pub struct AssembledApplication<Ctx>
 where
     Ctx: Send + Sync + 'static,
 {
-    pub queries: HashMap<String, Route<Ctx>>,
-    pub procedures: HashMap<String, Route<Ctx>>,
+    pub queries: BTreeMap<String, Route<Ctx>>,
+    pub procedures: BTreeMap<String, Route<Ctx>>,
 }
 
 impl<Ctx> AssembledApplication<Ctx>
@@ -16,8 +16,8 @@ where
 {
     pub fn from_service(service: Service<Ctx>) -> Self {
         let mut assembled_service = Self {
-            queries: HashMap::new(),
-            procedures: HashMap::new(),
+            queries: BTreeMap::new(),
+            procedures: BTreeMap::new(),
         };
         assembled_service.load_services_recursively("base".to_string(), service);
         assembled_service

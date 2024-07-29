@@ -1,4 +1,4 @@
-use std::{collections::HashMap, future::Future};
+use std::{collections::BTreeMap, future::Future};
 
 use futures::{Stream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
@@ -14,12 +14,12 @@ where
     Ctx: Send + Sync + 'static,
 {
     pub name: &'static str,
-    pub subservices: HashMap<String, Service<Ctx>>,
+    pub subservices: BTreeMap<String, Service<Ctx>>,
     pub type_map: TypeMap,
 
-    pub queries: HashMap<String, Route<Ctx>>,
-    pub procedures: HashMap<String, Route<Ctx>>,
-    pub events: HashMap<String, Route<Ctx>>,
+    pub queries: BTreeMap<String, Route<Ctx>>,
+    pub procedures: BTreeMap<String, Route<Ctx>>,
+    pub events: BTreeMap<String, Route<Ctx>>,
 }
 
 impl<Ctx> Service<Ctx>
@@ -29,10 +29,10 @@ where
     pub fn new(name: &'static str) -> Self {
         Service {
             name,
-            queries: HashMap::new(),
-            procedures: HashMap::new(),
-            events: HashMap::new(),
-            subservices: HashMap::new(),
+            queries: BTreeMap::new(),
+            procedures: BTreeMap::new(),
+            events: BTreeMap::new(),
+            subservices: BTreeMap::new(),
             type_map: TypeMap::default(),
         }
     }
