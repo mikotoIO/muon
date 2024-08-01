@@ -6,8 +6,20 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = "1.0.203"
+# the basic dependencies
+tokio = { version = "1.35.1", features = ["full"] }
+serde = { version = "1.0.192", features = ["derive"] }
+serde_json = "1.0.108"
+dotenv = "0.15.0"
+envy = "0.4.2"
+log = "0.4.21"
+pretty_env_logger = "0.5.0"
+
 hyperschema = { path = "../hyperschema" }
+
+# web server
+axum = { version = "0.7.5", features = ["multipart"] }
+tower-http = { version = "0.5.2", features = ["cors"] }
 
 [dependencies.specta]
 version = "2.0.0-rc.13"

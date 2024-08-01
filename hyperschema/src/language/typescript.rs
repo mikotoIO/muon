@@ -75,7 +75,7 @@ where
             }
             RouteType::Procedure(arg, res) => {
                 format!(
-                    "  {}(arg: {}): Promise<{}> {{ return this.transport.procedure('{}'); }}",
+                    "  {}(arg: {}): Promise<{}> {{ return this.transport.procedure('{}', arg); }}",
                     route.name,
                     self.datatype(&arg)?,
                     self.datatype(&res)?,
