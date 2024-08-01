@@ -1,35 +1,14 @@
+use error::Error;
 use hyperschema::{language::typescript::TypeScriptGenerator, service::Service};
-use serde::{Deserialize, Serialize};
-use specta::{ts::ExportConfig, Type};
+use specta::ts::ExportConfig;
 
-pub enum Error {
-    InternalServerError,
-    NotFound,
-}
-
-impl From<Error> for hyperschema::error::Error {
-    fn from(_: Error) -> Self {
-        hyperschema::error::Error::InternalServerError
-    }
-}
-
-#[derive(Serialize, Deserialize, Type)]
-pub struct Human {
-    pub name: String,
-    pub age: i32,
-    pub pet: Option<Animal>,
-}
-
-#[derive(Serialize, Deserialize, Type)]
-pub struct Animal {
-    pub name: String,
-    pub age: i32,
-}
+pub mod entities;
+pub mod error;
 
 fn humans() -> Service<()> {
     Service::<()>::new("HumanService")
         .query("get", |_, name: String| async move {
-            Ok(Human {
+            Ok(entities::Human {
                 name,
                 age: 22,
                 pet: None,
@@ -39,7 +18,7 @@ fn humans() -> Service<()> {
             if name.is_empty() {
                 return Err(Error::NotFound.into());
             }
-            Ok(Human {
+            Ok(entities::Human {
                 name,
                 age: 22,
                 pet: None,
