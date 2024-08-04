@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
+mod axum_integration;
 pub mod entities;
 pub mod error;
 
